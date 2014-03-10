@@ -54,7 +54,6 @@ header ul li#quick-switch img {
   height: 12px;
 }
 header ul li#quick-switch:hover ul {
-  display: block;
 }
 header ul li#quick-switch ul {
   margin: 0;
