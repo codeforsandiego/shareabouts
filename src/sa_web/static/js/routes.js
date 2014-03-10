@@ -1,3 +1,5 @@
+/*globals Backbone jQuery _ */
+
 var Shareabouts = Shareabouts || {};
 
 (function(S, $, console){
@@ -7,21 +9,45 @@ var Shareabouts = Shareabouts || {};
       'place/new': 'newPlace',
       'place/:id': 'viewPlace',
       'place/:id/edit': 'editPlace',
+      'list': 'showList',
       'page/:slug': 'viewPage'
     },
 
     initialize: function(options) {
-      var startPageConfig;
+      var self = this,
+          startPageConfig;
 
-      this.collection = new S.PlaceCollection([], {
-        responseType: options.surveyConfig['submission_type'],
-        supportType: options.supportConfig['submission_type']
+      S.PlaceModel.prototype.getLoggingDetails = function() {
+        return this.id;
+      };
+
+      // Reject a place that does not have a supported location type. This will
+      // prevent invalid places from being added or saved to the collection.
+      S.PlaceModel.prototype.validate = function(attrs, options) {
+        var locationType = attrs.location_type,
+            locationTypes = _.map(S.Config.placeTypes, function(config, key){ return key; });
+
+        if (!_.contains(locationTypes, locationType)) {
+          console.warn(locationType + ' is not supported.');
+          return locationType + ' is not supported.';
+        }
+      };
+
+      // Global route changes
+      this.bind('route', function(route, router) {
+        S.Util.log('ROUTE', self.getCurrentPath());
       });
-      this.activities = new S.ActivityCollection(options.activity);
+
+      this.loading = true;
+      this.collection = new S.PlaceCollection([]);
+      this.activities = new S.ActionCollection(options.activity);
       this.appView = new S.AppView({
         el: 'body',
         collection: this.collection,
         activities: this.activities,
+
+        config: options.config,
+
         defaultPlaceTypeName: options.defaultPlaceTypeName,
         placeTypes: options.placeTypes,
         surveyConfig: options.surveyConfig,
@@ -33,11 +59,6 @@ var Shareabouts = Shareabouts || {};
         userToken: options.userToken,
         router: this
       });
-
-      // Call reset after the views are created, since they're all going to
-      // be listening to reset.
-      this.collection.reset(options.places);
-      this.activities.fetch({data: {limit: 20}})
 
       // Start tracking the history
       var historyOptions = {pushState: true};
@@ -54,9 +75,17 @@ var Shareabouts = Shareabouts || {};
         });
 
         if (startPageConfig && startPageConfig.slug) {
-          this.navigate('page/' + startPageConfig.slug);
+          this.navigate('page/' + startPageConfig.slug, {trigger: true});
         }
       }
+
+      this.loading = false;
+    },
+
+    getCurrentPath: function() {
+      var root = Backbone.history.root,
+          fragment = Backbone.history.fragment;
+      return root + fragment;
     },
 
     viewMap: function() {
@@ -68,15 +97,18 @@ var Shareabouts = Shareabouts || {};
     },
 
     viewPlace: function(id) {
-      var model = this.collection.get(id);
-      this.appView.viewPlace(model);
+      this.appView.viewPlace(id, this.loading);
     },
 
     editPlace: function(){},
 
     viewPage: function(slug) {
       this.appView.viewPage(slug);
+    },
+
+    showList: function() {
+      this.appView.showListView();
     }
   });
 
-})(Shareabouts, jQuery, Shareabouts.Util.console);
+}(Shareabouts, jQuery, Shareabouts.Util.console));

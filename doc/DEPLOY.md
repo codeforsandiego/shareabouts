@@ -30,7 +30,7 @@ From the root Shareabouts directory...
 
   *DotCloud*
 
-         dotcloud push -A <instance name> -b master --git
+         dotcloud push --application <instance name> -b master --git
 
   Note you should either push all your changes to your master repository (eg. github or whatever you're using for version control); otherwise you must omit the `--git` option and _everything_ in your current directory will be pushed up.
 
@@ -42,11 +42,11 @@ From the root Shareabouts directory...
 
 * Set your flavor, and dataset API key and root URL:
 
-  You will need your dataset root API URL for this step.  Suppose you are using an API server named *api.shareabouts.org* with a username *mjumbewu* and a dataset called *niceplaces*. In this case, your dataset root will he `http://api.shareabouts.org/api/v1/mjumbewu/datasets/niceplaces/`.  In general, it will always be `http://<api server>/api/v1/<username>/datasets/<dataset slug>/`.
+  You will need your dataset root API URL for this step.  Suppose you are using an API server named *api.shareabouts.org* with a username *mjumbewu* and a dataset called *niceplaces*. In this case, your dataset root will he `http://api.shareabouts.org/api/v2/mjumbewu/datasets/niceplaces/`.  In general, it will always be `http://<api server>/api/v2/<username>/datasets/<dataset slug>/`.
 
   *DotCloud*
 
-         dotcloud env -A <instance name> set SHAREABOUTS_FLAVOR=<flavor name> \
+         dotcloud env --application <instance name> set SHAREABOUTS_FLAVOR=<flavor name> \
                                              SHAREABOUTS_DATASET_ROOT=<dataset root url> \
                                              SHAREABOUTS_DATASET_KEY=<dataset api key>
 
